@@ -54,6 +54,6 @@ class SpockThenOrderTest extends Specification {
 	}
 
 	interface Notifier {
-		void notifyCompletion();
+		void notifyCompletion()
 	}
 }
