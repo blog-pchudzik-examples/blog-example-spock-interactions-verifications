@@ -4,18 +4,17 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class SpockThenOrderTest extends Specification {
-	final Executor executor = Executors.newFixedThreadPool(4)
+	final executor = Executors.newFixedThreadPool(4)
 
 	@Unroll
 	def "no order failure"() {
 		given:
 		final notifier = Mock(Notifier)
-		CountDownLatch latch = new CountDownLatch(1)
+		final latch = new CountDownLatch(1)
 
 		when:
 		executor.execute({ ->
@@ -48,6 +47,30 @@ class SpockThenOrderTest extends Specification {
 
 		then:
 		1 * notifier.notifyCompletion()
+
+		where:
+		i << (1..10)
+	}
+
+	@Unroll
+	def "with interactions"() {
+		given:
+		final notifier = Mock(Notifier)
+		final latch = new CountDownLatch(1)
+
+		when:
+		println("when block")
+		executor.execute({ ->
+			notifier.notifyCompletion()
+			latch.countDown()
+		})
+
+		then:
+		interaction {
+			println("Interactions")
+			latch.await(2, TimeUnit.SECONDS)
+			1 * notifier.notifyCompletion()
+		}
 
 		where:
 		i << (1..10)
